@@ -1,0 +1,115 @@
+/*
+  +----------------------------------------------------------------------+
+  | Swoole                                                               |
+  +----------------------------------------------------------------------+
+  | This source file is subject to version 2.0 of the Apache license,    |
+  | that is bundled with this package in the file LICENSE, and is        |
+  | available through the world-wide-web at the following url:           |
+  | http://www.apache.org/licenses/LICENSE-2.0.html                      |
+  | If you did not receive a copy of the Apache2.0 license and are unable|
+  | to obtain it through the world-wide-web, please send a note to       |
+  | license@php.net so we can mail you a copy immediately.               |
+  +----------------------------------------------------------------------+
+  | Author: Tianfeng Han  <mikan.tenny@gmail.com>                        |
+  +----------------------------------------------------------------------+
+*/
+
+#include <string>
+#include <iostream>
+
+#include "PHP_API.hpp"
+#include "swoole.h"
+#include "module.h"
+
+using namespace std;
+using namespace PHP;
+
+extern "C"
+{
+    int swModule_init(swModule *);
+    void swModule_destory(swModule *);
+}
+
+void String_construct(Object &_this, Args &args, Variant &retval)
+{
+    if (!args[0].isString())
+    {
+        throwException("\\Exception", "parameter 1 is not string.");
+        return;
+    }
+    _this.set("string", args[0].toString());
+}
+
+void String_split(Object &_this, Args &args, Variant &retval)
+{
+    auto delim = args[0];
+    auto str = _this.get("string");
+    Variant ret;
+    if (args.count() == 2)
+    {
+        ret = PHP::exec("explode", delim, str, args[1]);
+    }
+    else
+    {
+        ret = PHP::exec("explode", delim, str);
+    }
+    Array _args;
+    _args.append(ret);
+    Object o = PHP::create("ArrayType", _args);
+    retval.copy(o);
+}
+
+void Array_construct(Object &_this, Args &args, Variant &retval)
+{
+    auto _array = args[0];
+    if (!_array.isArray())
+    {
+        throwException("\\Exception", "parameter 1 is not array.");
+        return;
+    }
+    Array array(_array);
+    _this.set("array", array);
+}
+
+void Array_contains(Object &_this, Args &args, Variant &retval)
+{
+    auto val = args[0];
+    auto arr = _this.get("array");
+    auto ret = PHP::exec("in_array", val, arr);
+    retval = ret.toBool();
+}
+
+void Array_join(Object &_this, Args &args, Variant &retval)
+{
+    auto val = args[0];
+    auto arr = _this.get("array");
+    auto ret = PHP::exec("implode", val, arr);
+    Array _args;
+    _args.append(ret);
+    Object o = PHP::create("StringType", _args);
+    retval.copy(o);
+}
+
+int swModule_init(swModule *module)
+{
+    module->name = (char *) "stdext";
+
+    Class *class_string = new Class("StringType");
+    class_string->addMethod("__construct", String_construct, CONSTRUCT);
+    class_string->addMethod("split", String_split);
+    class_string->addProperty("string", "");
+    PHP::registerClass(class_string);
+
+    Class *class_array = new Class("ArrayType");
+    class_array->addMethod("__construct", Array_construct, CONSTRUCT);
+    class_array->addMethod("contains", Array_contains);
+    class_array->addMethod("join", Array_join);
+    PHP::registerClass(class_array);
+
+    return SW_OK;
+}
+
+void swModule_destory(swModule *module)
+{
+    PHP::destory();
+}
