@@ -30,7 +30,7 @@ extern "C"
     void swModule_destory(swModule *);
 }
 
-void String_construct(Object &_this, Args &args, Variant &retval)
+static defineMethod(String, construct)
 {
     if (!args[0].isString())
     {
@@ -40,7 +40,7 @@ void String_construct(Object &_this, Args &args, Variant &retval)
     _this.set("string", args[0].toString());
 }
 
-void String_split(Object &_this, Args &args, Variant &retval)
+static defineMethod(String, split)
 {
     auto delim = args[0];
     auto str = _this.get("string");
@@ -53,10 +53,30 @@ void String_split(Object &_this, Args &args, Variant &retval)
     {
         ret = PHP::exec("explode", delim, str);
     }
-    Array _args;
-    _args.append(ret);
-    Object o = PHP::create("ArrayType", _args);
+    Object o = PHP::newObject("ArrayType", ret);
     retval.copy(o);
+}
+
+static defineMethod(String, substr)
+{
+    auto str = _this.get("string");
+    Variant ret;
+    if (args.count() == 2)
+    {
+        ret = PHP::exec("substr", str, args[0], args[1]);
+    }
+    else
+    {
+        ret = PHP::exec("substr", str, args[0]);
+    }
+    Object o = PHP::newObject("StringType", ret);
+    retval.copy(o);
+}
+
+static defineMethod(Array, toArray)
+{
+    auto arr = _this.get("array");
+    retval.copy(arr);
 }
 
 void Array_construct(Object &_this, Args &args, Variant &retval)
@@ -97,13 +117,14 @@ int swModule_init(swModule *module)
     Class *class_string = new Class("StringType");
     class_string->addMethod("__construct", String_construct, CONSTRUCT);
     class_string->addMethod("split", String_split);
-    class_string->addProperty("string", "");
+    class_string->addMethod("substr", String_substr);
     PHP::registerClass(class_string);
 
     Class *class_array = new Class("ArrayType");
     class_array->addMethod("__construct", Array_construct, CONSTRUCT);
     class_array->addMethod("contains", Array_contains);
     class_array->addMethod("join", Array_join);
+    class_array->addMethod("toArray", Array_toArray);
     PHP::registerClass(class_array);
 
     return SW_OK;
