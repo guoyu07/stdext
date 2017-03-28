@@ -73,6 +73,15 @@ static defineMethod(String, substr)
     retval.copy(o);
 }
 
+static defineMethod(String, test)
+{
+    auto a = PHP::newResource("StringResource", new String("hello world"));
+    _this.set("resource", a);
+
+    String *s = a.toResource<String>("StringResource");
+    printf("s=%s\n", s->c_str());
+}
+
 static defineMethod(Array, toArray)
 {
     auto arr = _this.get("array");
@@ -110,6 +119,12 @@ void Array_join(Object &_this, Args &args, Variant &retval)
     retval.copy(o);
 }
 
+static void StringResource_destory(zend_resource *res)
+{
+    String *str = static_cast<String *>(res->ptr);
+    delete str;
+}
+
 int swModule_init(swModule *module)
 {
     module->name = (char *) "stdext";
@@ -118,6 +133,10 @@ int swModule_init(swModule *module)
     class_string->addMethod("__construct", String_construct, CONSTRUCT);
     class_string->addMethod("split", String_split);
     class_string->addMethod("substr", String_substr);
+    class_string->addMethod("test", String_test);
+    class_string->addProperty("string", "");
+    //static property
+    class_string->addProperty("version", "1.0.5", STATIC);
     PHP::registerClass(class_string);
 
     Class *class_array = new Class("ArrayType");
@@ -126,6 +145,8 @@ int swModule_init(swModule *module)
     class_array->addMethod("join", Array_join);
     class_array->addMethod("toArray", Array_toArray);
     PHP::registerClass(class_array);
+
+    PHP::registerResource("StringResource", StringResource_destory);
 
     return SW_OK;
 }
