@@ -27,7 +27,7 @@ using namespace PHP;
 extern "C"
 {
     int swModule_init(swModule *);
-    void swModule_destory(swModule *);
+    void swModule_destroy(swModule *);
 }
 
 static defineMethod(String, construct)
@@ -77,9 +77,6 @@ static defineMethod(String, test)
 {
     auto a = PHP::newResource("StringResource", new String("hello world"));
     _this.set("resource", a);
-
-    String *s = a.toResource<String>("StringResource");
-    printf("s=%s\n", s->c_str());
 }
 
 static defineMethod(Array, toArray)
@@ -134,7 +131,6 @@ int swModule_init(swModule *module)
     class_string->addMethod("split", String_split);
     class_string->addMethod("substr", String_substr);
     class_string->addMethod("test", String_test);
-    class_string->addProperty("string", "");
     //static property
     class_string->addProperty("version", "1.0.5", STATIC);
     PHP::registerClass(class_string);
@@ -151,7 +147,7 @@ int swModule_init(swModule *module)
     return SW_OK;
 }
 
-void swModule_destory(swModule *module)
+void swModule_destroy(swModule *module)
 {
-    PHP::destory();
+    PHP::destroy();
 }
