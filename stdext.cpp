@@ -79,6 +79,12 @@ static defineMethod(String, test)
     _this.set("resource", a);
 }
 
+static defineMethod(String, test2)
+{
+    auto a = _this.get("resource");
+    String *str = a.toResource<String>("StringResource");
+}
+
 static defineMethod(Array, toArray)
 {
     auto arr = _this.get("array");
@@ -131,6 +137,7 @@ int swModule_init(swModule *module)
     class_string->addMethod("split", String_split);
     class_string->addMethod("substr", String_substr);
     class_string->addMethod("test", String_test);
+    class_string->addMethod("test2", String_test2);
     //static property
     class_string->addProperty("version", "1.0.5", STATIC);
     PHP::registerClass(class_string);
