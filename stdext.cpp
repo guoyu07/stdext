@@ -30,7 +30,7 @@ extern "C"
     void swModule_destroy(swModule *);
 }
 
-static defineMethod(String, construct)
+static PHPX_METHOD(String, construct)
 {
     if (!args[0].isString())
     {
@@ -40,7 +40,7 @@ static defineMethod(String, construct)
     _this.set("string", args[0].toString());
 }
 
-static defineMethod(String, split)
+static PHPX_METHOD(String, split)
 {
     auto delim = args[0];
     auto str = _this.get("string");
@@ -57,7 +57,7 @@ static defineMethod(String, split)
     retval.copy(o);
 }
 
-static defineMethod(String, substr)
+static PHPX_METHOD(String, substr)
 {
     auto str = _this.get("string");
     Variant ret;
@@ -73,19 +73,19 @@ static defineMethod(String, substr)
     retval.copy(o);
 }
 
-static defineMethod(String, test)
+static PHPX_METHOD(String, test)
 {
     auto a = PHP::newResource("StringResource", new String("hello world"));
     _this.set("resource", a);
 }
 
-static defineMethod(String, test2)
+static PHPX_METHOD(String, test2)
 {
     auto a = _this.get("resource");
     String *str = a.toResource<String>("StringResource");
 }
 
-static defineMethod(Array, toArray)
+static PHPX_METHOD(Array, toArray)
 {
     auto arr = _this.get("array");
     retval.copy(arr);
